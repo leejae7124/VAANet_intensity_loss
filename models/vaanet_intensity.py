@@ -199,7 +199,7 @@ class VAANet_intensity(VisualStream):
         #retain_graph: forward를 하면서 연산 그래프를 저장해둘 것인가.
         # 연산 기록을 저장해두면, 그 기록을 따라서 gradient를 계산할 수 있다.
         #create_graph: gradient 계산 과정도 그래프로 기록할 것인가. -> gradient에 대해서도 미분 가능해짐(2차 미분)
-        grads = torch.autograd.grad(score, self._gc_activ, retain_graph=retain, create_graph=False)[0] #backward 정보 저장, 2차 미분 없이 일단 세팅
+        grads = torch.autograd.grad(score, self._gc_activ, retain_graph=retain, create_graph=True)[0] #backward 정보 저장, 2차 미분 없이 일단 세팅
 
         A = self._gc_activ
         if A.dim() == 5:
