@@ -115,13 +115,18 @@ class VAANet_intensity(VisualStream):
             F = torch.flatten(F, start_dim=2)
             print("mimimim***")
         else:
-            with torch.no_grad(): #autograd 그래프 기록을 끄는 것.
-                # ResNet을 통과시켜 피처맵 생성
+            # with torch.no_grad(): #autograd 그래프 기록을 끄는 것.
+            #     # ResNet을 통과시켜 피처맵 생성
+            #     F = self.resnet(visual)
+            #     F = torch.squeeze(F, dim=2)
+            #     F = torch.flatten(F, start_dim=2)
+                # print("mimimimimi")
+            with torch.no_grad():
                 F = self.resnet(visual)
-                F = torch.squeeze(F, dim=2)
-                F = torch.flatten(F, start_dim=2)
-                print("mimimimimi")
-        F = self.conv0(F)  # [B x 512 x 16]
+            F = torch.squeeze(F, dim=2)
+            F = torch.flatten(F, start_dim=2)
+            F = self.conv0(F)  # 여기부터 그래프 시작(학습됨)
+        # F = self.conv0(F)  # [B x 512 x 16]
 
         Hs = self.sa_net['conv'](F)
         Hs = torch.squeeze(Hs, dim=1)
