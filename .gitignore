@@ -1,0 +1,7 @@
+/venv
+/.idea
+
+*.pth
+*.pt
+*.ckpt
+*.log
