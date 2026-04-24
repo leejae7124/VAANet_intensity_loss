@@ -16,7 +16,7 @@ def parse_opts():
                  type=str,
                  help='Global path of pretrained 3d resnet101 model (.pth)'),
             dict(name='--checkpoint_path',
-                     default='/shared/home/affctiv/sumin/VAANet_intensity_loss/tools/annotations/tsl/results/result_20260423_184945/checkpoints/save_8_0.6884.pth',
+                     default='/shared/home/affctiv/sumin/VAANet_intensity_loss/tools/annotations/tsl/results/result_20260424_031648/checkpoints/save_9_0.5726.pth',
                  type=str,
                  help='Path of the saved model checkpoint (.pth)'),
             dict(name='--root_path',
@@ -68,7 +68,7 @@ def parse_opts():
                  default=12,
                  type=int),
             dict(name='--loss_func',
-                 default='ce_intensity',
+                 default='ce',#test 시에는 ce loss로 수정해야 함
                  type=str,
                  help='ce | pcce_ve8'),
             dict(name='--learning_rate',
