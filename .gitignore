@@ -13,3 +13,6 @@ nohup.out
 *.swp
 .nfs*
 tools/annotations/tsl/results/
+
+__pycache__/
+*.pyc
