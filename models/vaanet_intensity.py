@@ -110,9 +110,11 @@ class VAANet_intensity(VisualStream):
         self._gc_enable = compute_gradcam #grad-cam 계산할 건지
         self._gc_activ = None
         if compute_gradcam:
-            F = self.resnet(visual)   # gradient 계산 허용, 계산을 허용한 것이지 resnet 파라미터를 업데이트 한다는 것은 아님.
+            with torch.no_grad():
+                F = self.resnet(visual)
             F = torch.squeeze(F, dim=2)
             F = torch.flatten(F, start_dim=2)
+            F = self.conv0(F)
             print("mimimim***")
         else:
             # with torch.no_grad(): #autograd 그래프 기록을 끄는 것.

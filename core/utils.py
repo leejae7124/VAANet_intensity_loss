@@ -182,7 +182,7 @@ def run_model_loss(opt, inputs, model, criterion, i=0, print_attention=True, per
     visual, target, audio , saliency_map = inputs
 
     # ✅ Grad-CAM은 train + grad enabled 일 때만
-    need_align = (opt.loss_func == "ce_intensity")
+    need_align = opt.loss_func.startswith("ce_intensity")  # ce_intensity, ce_intensity_grad, ...
     do_cam = need_align and model.training and torch.is_grad_enabled()
 
     if do_cam:

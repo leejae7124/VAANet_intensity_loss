@@ -16,7 +16,7 @@ def parse_opts():
                  type=str,
                  help='Global path of pretrained 3d resnet101 model (.pth)'),
             dict(name='--checkpoint_path',
-                     default='/shared/home/affctiv/sumin/VAANet_intensity_loss/tools/annotations/tsl/results/result_20260424_031648/checkpoints/save_9_0.5726.pth',
+                     default='/home/leessu/tb_school/result_20260424_031648/checkpoints/save_9_0.5726.pth',
                  type=str,
                  help='Path of the saved model checkpoint (.pth)'),
             dict(name='--root_path',

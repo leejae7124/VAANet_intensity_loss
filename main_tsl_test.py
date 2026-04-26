@@ -1,7 +1,7 @@
 import torch
 from torch.cuda import device_count
 
-from opts_tsl_school import parse_opts
+from opts_tsl import parse_opts
 from core.model import generate_model_intensity
 from core.loss import get_loss
 from core.utils import local2global_path, get_spatial_transform, get_saliency_transform

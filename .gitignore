@@ -16,3 +16,19 @@ tools/annotations/tsl/results/
 
 __pycache__/
 *.pyc
+.ipynb_checkpoints/
+
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.log
+nohup.out
+*.swp
+*.swo
+.nfs*
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

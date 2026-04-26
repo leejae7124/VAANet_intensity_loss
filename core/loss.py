@@ -188,7 +188,70 @@ class Intensity(nn.Module):
         sal = sal_map.clamp_min(self.eps)
         return (torch.log(cam) - torch.log(sal)).abs().mean() #RMSEL 식
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
+class IntensityGrad(Intensity):
+    """
+    Gradient-only align loss (Sobel 기반)
+    - CAM calibration/resize 로직은 Intensity 그대로 사용
+    - align은 |∂cam/∂x-∂sal/∂x| + |∂cam/∂y-∂sal/∂y| 만 사용
+    """
+    def __init__(self, *args, sobel_norm: float = 1.0/8.0, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        kx = torch.tensor([[-1., 0., 1.],
+                           [-2., 0., 2.],
+                           [-1., 0., 1.]], dtype=torch.float32).view(1, 1, 3, 3)
+        ky = torch.tensor([[-1., -2., -1.],
+                           [ 0.,  0.,  0.],
+                           [ 1.,  2.,  1.]], dtype=torch.float32).view(1, 1, 3, 3)
+
+        self.register_buffer("sobel_x", kx)
+        self.register_buffer("sobel_y", ky)
+        self.sobel_norm = sobel_norm
+
+    def _sobel(self, x_5d: torch.Tensor):
+        """
+        x_5d: [B, S, 1, H, W]
+        return: gx, gy each [B, S, 1, H, W]
+        """
+        B, S, _, H, W = x_5d.shape
+        x = x_5d.view(B * S, 1, H, W)
+        gx = F.conv2d(x, self.sobel_x, padding=1) * self.sobel_norm
+        gy = F.conv2d(x, self.sobel_y, padding=1) * self.sobel_norm
+        gx = gx.view(B, S, 1, H, W)
+        gy = gy.view(B, S, 1, H, W)
+        return gx, gy
+
+    def forward(self, cam_map, sal_map):
+        # ---- shape 통일 (기존 Intensity와 동일) ----
+        if cam_map.dim() == 4:  # [B,S,H,W]
+            cam_map = cam_map.unsqueeze(2)
+        if sal_map.dim() == 4:
+            sal_map = sal_map.unsqueeze(2)
+        if sal_map.dim() == 6:  # [B,S,1,D,H,W] -> snippet time mean
+            sal_map = sal_map.mean(dim=3)
+
+        # ---- 해상도 맞추기: saliency -> cam ----
+        B, S, _, Hc, Wc = cam_map.shape
+        _, _, _, Hs, Ws = sal_map.shape
+        if (Hs, Ws) != (Hc, Wc):
+            sal_ = sal_map.view(B * S, 1, Hs, Ws)
+            sal_ = F.interpolate(sal_, size=(Hc, Wc), mode="bilinear", align_corners=False)
+            sal_map = sal_.view(B, S, 1, Hc, Wc)
+
+        # ---- CAM calibration (epoch_p95 등 기존 그대로) ----
+        cam_map = self._calibrate_cam(cam_map)
+
+        # ---- Gradient loss only (Sobel) ----
+        gx_c, gy_c = self._sobel(cam_map)
+        gx_s, gy_s = self._sobel(sal_map)
+
+        loss = (gx_c - gx_s).abs().mean() + (gy_c - gy_s).abs().mean()
+        return loss
+    
 class Intensity_CE(nn.Module):
     def __init__(self, cls_loss, intensity_loss, lambda_intensity: float):
         super().__init__()
@@ -224,5 +287,14 @@ def get_loss(opt):
             clamp_max=getattr(opt, "cam_clamp_max", None),
         )
         return Intensity_CE(cls, intensity, lambda_intensity=getattr(opt, "lambda_intensity", 1.0)) #우선 intensity의 영향을 ce와 동일하게 설정
+    elif opt.loss_func == 'ce_intensity_grad':
+        cls = nn.CrossEntropyLoss()
+        intensity = IntensityGrad(
+            cam_calib="epoch_p95",
+            q=getattr(opt, "cam_q", 0.95),
+            update_every_epochs=getattr(opt, "cam_update_every_epochs", 1),
+            clamp_max=getattr(opt, "cam_clamp_max", None),
+        )
+        return Intensity_CE(cls, intensity, lambda_intensity=getattr(opt, "lambda_intensity", 1.0))
     else:
         raise Exception
