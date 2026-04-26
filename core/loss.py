@@ -279,6 +279,7 @@ def get_loss(opt):
     elif opt.loss_func == 'pcce_ve8':
         return PCCEVE8(lambda_0=opt.lambda_0)
     elif opt.loss_func == 'ce_intensity':
+        print("ce_intensity")
         cls = nn.CrossEntropyLoss()
         intensity = Intensity(
             cam_calib="epoch_p95",
@@ -288,6 +289,7 @@ def get_loss(opt):
         )
         return Intensity_CE(cls, intensity, lambda_intensity=getattr(opt, "lambda_intensity", 1.0)) #우선 intensity의 영향을 ce와 동일하게 설정
     elif opt.loss_func == 'ce_intensity_grad':
+        print("ce_intensity_grad")
         cls = nn.CrossEntropyLoss()
         intensity = IntensityGrad(
             cam_calib="epoch_p95",
