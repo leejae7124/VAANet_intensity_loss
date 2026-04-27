@@ -297,6 +297,6 @@ def get_loss(opt):
             update_every_epochs=getattr(opt, "cam_update_every_epochs", 1),
             clamp_max=getattr(opt, "cam_clamp_max", None),
         )
-        return Intensity_CE(cls, intensity, lambda_intensity=getattr(opt, "lambda_intensity", 1.0))
+        return Intensity_CE(cls, intensity, lambda_intensity=getattr(opt, "lambda_intensity", 10.0))
     else:
         raise Exception
